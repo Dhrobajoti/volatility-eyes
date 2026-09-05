@@ -1,0 +1,163 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-vol}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-vol}
+      POSTGRES_DB: ${POSTGRES_DB:-vol_gui}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      # -d is required: without it, pg_isready defaults the target database
+      # to the *username* ("vol"), not POSTGRES_DB ("vol_gui") - the server
+      # was still fine, but every single poll logged a real (if harmless)
+      # "FATAL: database "vol" does not exist" on the Postgres side, and it
+      # wasn't actually checking that our real database was reachable.
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-vol} -d ${POSTGRES_DB:-vol_gui}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", ""]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # --- volatility3 API service (FastAPI) - source lives in volatility3/. If
+  # you clone the upstream volatility3 library itself for local, non-Docker
+  # dev (see README's "Local development" section), clone it as
+  # volatility3-lib/, not volatility3/ - that name is this folder.
+  volatility3:
+    build:
+      context: .
+      dockerfile: volatility3/Dockerfile
+    command: sh -c "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://vol:vol@postgres:5432/vol_gui}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      STORAGE_ROOT: ${STORAGE_ROOT:-/data}
+      VOLATILITY3_OFFLINE: ${VOLATILITY3_OFFLINE:-false}
+      # Always set, harmless if unreachable - see insights/README.md. This is
+      # the only thing that makes Insights "on": there's no separate enabled
+      # flag to keep in sync, just whether this URL happens to answer.
+      INSIGHTS_BASE_URL: ${INSIGHTS_BASE_URL:-http://insights:8100}
+      VOLATILITY2_BASE_URL: ${VOLATILITY2_BASE_URL:-http://volatility2:8200}
+    volumes:
+      - vol_storage:/data
+      - vol_symbol_cache:/root/.cache/volatility3
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: volatility3/Dockerfile
+    command: celery -A app.worker.celery_app worker --loglevel=INFO --concurrency=2
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://vol:vol@postgres:5432/vol_gui}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      STORAGE_ROOT: ${STORAGE_ROOT:-/data}
+      VOLATILITY3_OFFLINE: ${VOLATILITY3_OFFLINE:-false}
+      INSIGHTS_BASE_URL: ${INSIGHTS_BASE_URL:-http://insights:8100}
+      VOLATILITY2_BASE_URL: ${VOLATILITY2_BASE_URL:-http://volatility2:8200}
+    volumes:
+      - vol_storage:/data
+      - vol_symbol_cache:/root/.cache/volatility3
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+    ports:
+      - "3000:80"
+    depends_on:
+      - volatility3
+
+  # --- volatility2 legacy analysis (for images v3's automagic can't handle) ---
+  # Source lives in volatility2/. Always on, unlike Insights below: no
+  # multi-GB model weights, no heavy resource cost, and it's core analysis
+  # capability rather than an optional AI layer. Fully isolated regardless
+  # (see volatility2/README.md) - a bug or outage here can't affect
+  # volatility3 analysis, which is a separate Job.engine code path end to end.
+  volatility2:
+    build:
+      context: ./volatility2
+    volumes:
+      - vol_storage:/data:ro
+    expose:
+      - "8200"
+
+  # --- Optional: LLM-based Insights (AI/ML enabled analysis) ---
+  # Off by default. `docker compose up` never starts these two - only
+  # `docker compose --profile insights up` does. This is the actual
+  # disable switch: nothing else in the stack depends on them being up
+  # (see volatility3's INSIGHTS_BASE_URL usage - it degrades to
+  # "unavailable" rather than failing when these aren't running).
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["insights"]
+    volumes:
+      - ollama_models:/root/.ollama
+    expose:
+      - "11434"
+    # Uncomment to use an NVIDIA GPU if available (falls back to CPU otherwise):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+
+  insights:
+    build:
+      context: ./insights
+    profiles: ["insights"]
+    environment:
+      OLLAMA_BASE_URL: http://ollama:11434
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-qwen2.5:3b-instruct}
+      OLLAMA_NUM_CTX: ${OLLAMA_NUM_CTX:-8192}
+      OLLAMA_NUM_PREDICT: ${OLLAMA_NUM_PREDICT:-450}
+      OLLAMA_TIMEOUT_SECONDS: ${OLLAMA_TIMEOUT_SECONDS:-280}
+    expose:
+      - "8100"
+    depends_on:
+      - ollama
+
+volumes:
+  # Pinned to literal names (rather than left to Compose's default
+  # <project-name>_<volume> auto-prefixing) so the underlying data - the
+  # Postgres DB, uploaded images, job results, symbol cache, ollama models -
+  # stays attached to the same physical volume no matter what the compose
+  # project name resolves to (which follows the containing directory's name
+  # unless overridden here). Names below match what was already in use
+  # before this pin, so this is a no-op for the current deployment and only
+  # matters going forward.
+  pg_data:
+    name: volatility_gui_project_pg_data
+  vol_storage:
+    name: volatility_gui_project_vol_storage
+  vol_symbol_cache:
+    name: volatility_gui_project_vol_symbol_cache
+  ollama_models:
+    name: volatility_gui_project_ollama_models

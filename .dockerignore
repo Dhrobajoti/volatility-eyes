@@ -1,0 +1,14 @@
+**/.git
+**/__pycache__
+**/*.pyc
+.venv
+volatility3-lib
+volatility
+VMEM_DUMPS
+volatility3/data
+volatility3/.env
+volatility3/.pytest_cache
+frontend/node_modules
+frontend/dist
+scratch
+*.log

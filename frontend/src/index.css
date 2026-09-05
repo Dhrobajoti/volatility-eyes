@@ -1,0 +1,494 @@
+:root {
+  color-scheme: dark;
+  --bg: #0f1216;
+  --surface: #171b21;
+  --surface-2: #1f242c;
+  --border: #2a3038;
+  --text: #e6e9ef;
+  --text-dim: #9aa4b2;
+  --accent: #4f8cff;
+  --accent-dim: #2c4d8f;
+  --danger: #e5534b;
+  --success: #3fb950;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app-shell {
+  display: flex;
+  /* Fixed to the viewport (not min-height) so the shell itself never grows
+     taller than the screen - the nav/footer live inside it, so pinning the
+     shell is what keeps them in view while a tall page scrolls. Only
+     .app-main scrolls internally (see below). */
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-nav {
+  width: 200px;
+  flex-shrink: 0;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-nav > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.app-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+}
+
+.page-hero {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: radial-gradient(circle at 0% 0%, rgba(79, 140, 255, 0.14), transparent 60%),
+    var(--surface);
+}
+
+.page-hero-mark {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+}
+
+.page-hero h1 {
+  margin: 0 0 4px;
+}
+
+.page-hero-subtitle {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+.app-credit {
+  margin-top: auto;
+  padding-top: 24px;
+  color: var(--text-dim);
+  font-size: 0.7rem;
+}
+
+.app-nav a {
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.app-nav a.active,
+.app-nav a:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.app-main {
+  flex: 1;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: auto;
+  padding: 32px 40px;
+}
+
+.page h1 {
+  margin-top: 0;
+}
+
+.uploader-drop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  cursor: pointer;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+}
+
+.uploader-drop input {
+  display: none;
+}
+
+.progress-bar {
+  position: relative;
+  height: 22px;
+  background: var(--surface-2);
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 12px 0;
+  max-width: 480px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.progress-bar-label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+.error-text {
+  color: var(--danger);
+}
+
+.error-box {
+  background: rgba(229, 83, 75, 0.12);
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin: 16px 0;
+}
+
+.insight-message {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 16px 0;
+  max-width: 800px;
+}
+
+.insight-disclaimer {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0 0 12px;
+}
+
+.insight-content {
+  white-space: pre-wrap;
+  line-height: 1.5;
+}
+
+.insight-sources {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.result-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.result-search {
+  flex: 1;
+  max-width: 480px;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+}
+
+.export-button {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 14px;
+  white-space: nowrap;
+}
+
+.export-button:hover {
+  background: var(--accent-dim);
+}
+
+.result-search-count {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  margin: 0 0 8px;
+}
+
+.jobs-table-scroll {
+  /* Its own bounded scroll region, with zero padding at its top edge, so
+     the sticky <th> below (top: 0) has an unambiguous scrollport to stick
+     against - relying on .app-main's own scroll (which has 32px of
+     top padding ahead of the table) left a persistent gap where a mid-
+     scroll row could still show through above the "stuck" header. */
+  max-height: calc(100vh - 180px);
+  overflow-y: auto;
+}
+
+table.result-table {
+  /* separate + 0 spacing (not collapse) - looks identical since only
+     border-bottom is set below, but border-collapse: collapse silently
+     breaks `position: sticky` on <th> in Chrome/Firefox (a well-known
+     interaction, not a bug in the sticky rule itself) - that, not paint
+     order, was why the header wasn't actually pinning to the top at all. */
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+.result-table-wrap {
+  overflow-x: auto;
+}
+
+table.result-table th,
+table.result-table td {
+  border-bottom: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+table.result-table th {
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  /* Without an explicit stacking context, a sticky header with no z-index
+     can end up painted *under* the table body's own rows during scroll
+     (a well-known sticky-table-header gotcha) - looks like body rows
+     overlapping/bleeding through the header instead of scrolling beneath
+     it. */
+  z-index: 1;
+}
+
+.tree-toggle {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  margin-right: 6px;
+  padding: 0;
+}
+
+.row-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.link-button.danger {
+  color: var(--danger);
+}
+
+.two-column {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 24px;
+  margin-top: 20px;
+  align-items: start;
+}
+
+.os-filter-note {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  margin: 0 0 10px;
+}
+
+.plugin-picker-search {
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+}
+
+.plugin-picker-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 60vh;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.plugin-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 12px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.plugin-item:hover {
+  background: var(--surface-2);
+}
+
+.plugin-item.selected {
+  background: var(--accent-dim);
+}
+
+.plugin-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.plugin-os {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+.plugin-desc {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.plugin-empty,
+.form-empty {
+  color: var(--text-dim);
+  padding: 12px;
+}
+
+.plugin-detail {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.param-field {
+  margin-bottom: 16px;
+}
+
+.param-field label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.required-mark {
+  color: var(--danger);
+  margin-left: 4px;
+}
+
+.param-desc {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  margin: 4px 0 0;
+}
+
+.param-field input,
+.param-field select,
+.form-field select {
+  width: 100%;
+  max-width: 420px;
+  padding: 8px 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+}
+
+.form-field {
+  margin-bottom: 16px;
+}
+
+.form-field label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 18px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+button:disabled {
+  background: var(--surface-2);
+  color: var(--text-dim);
+  cursor: not-allowed;
+}
+
+.job-meta {
+  color: var(--text-dim);
+}
+
+.job-files {
+  margin-top: 24px;
+}
+
+.engine-badge {
+  margin-left: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--accent-dim);
+  color: var(--text);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.legacy-output {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  overflow-x: auto;
+  font-family: "Cascadia Code", "Consolas", monospace;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  white-space: pre;
+}

@@ -1,0 +1,38 @@
+# volatility3 (the actual upstream library)/volatility (v2) are third-party
+# upstream projects (Volatility Foundation), not part of this repo - see
+# README for how they're obtained (both are cloned fresh at Docker build
+# time, pinned to a specific commit/tag). If cloned locally for manual
+# testing/non-Docker dev, clone the v3 library as volatility3-lib/, not
+# volatility3/ - that name is this repo's own FastAPI/Celery service folder.
+# Local clones here must never be tracked/pushed.
+volatility3-lib/
+volatility/
+
+# Memory images and local upload/job storage - large and often sensitive
+VMEM_DUMPS/
+volatility3/data/
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Local env files (contain local dev secrets/URLs)
+volatility3/.env
+frontend/.env
+.env
+
+# Node
+frontend/node_modules/
+frontend/dist/
+
+# Editor/OS
+.DS_Store
+
+# Scratch/working files
+scratch/
+
+# Claude Code local session state (machine-specific, not project source)
+.claude/

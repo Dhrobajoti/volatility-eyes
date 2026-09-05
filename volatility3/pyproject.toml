@@ -1,0 +1,36 @@
+[project]
+name = "vol-gui-backend"
+version = "0.1.0"
+description = "REST/worker backend wrapping volatility3 for the Volatility GUI project"
+requires-python = ">=3.10"
+dependencies = [
+    # volatility3[full] is installed separately (see README/Dockerfile). It's a
+    # third-party project not vendored into this repo, and not listed here
+    # because relative file:// path deps are unreliable across platforms/pip
+    # versions - see the README for how to get a local copy for dev.
+    "fastapi>=0.115.0,<1",
+    "uvicorn[standard]>=0.32.0,<1",
+    "python-multipart>=0.0.12,<1",
+    "pydantic>=2.9.0,<3",
+    "pydantic-settings>=2.6.0,<3",
+    "sqlalchemy>=2.0.36,<3",
+    "alembic>=1.13.3,<2",
+    "psycopg[binary]>=3.2.3,<4",
+    "celery>=5.4.0,<6",
+    "redis>=5.2.0,<6",
+    "websockets>=13.1,<14",
+    "httpx>=0.27.2,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.3,<9",
+    "pytest-asyncio>=0.24.0,<1",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
